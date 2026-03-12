@@ -401,18 +401,45 @@ function renderQuestions() {
   questions.forEach(q => {
     const div = document.createElement('div');
     div.className = 'question';
-    div.innerHTML = `
-      <div class="question-text">${q.id}. ${q.text}</div>
-      ${q.note ? `<div class="question-note">${q.note}</div>` : ''}
-      <div class="options" id="opts-${q.id}">
-        ${q.options.map((opt, i) => `
-          <label class="option-label" id="opt-${q.id}-${i}" onclick="selectOption(${q.id}, ${i})">
-            <input type="radio" name="q${q.id}" value="${i}">
-            <span class="option-score">${i}</span> ${opt}
-          </label>
-        `).join('')}
-      </div>
-    `;
+
+    const title = document.createElement('div');
+    title.className = 'question-text';
+    title.textContent = q.id + '. ' + q.text;
+    div.appendChild(title);
+
+    if (q.note) {
+      const note = document.createElement('div');
+      note.className = 'question-note';
+      note.textContent = q.note;
+      div.appendChild(note);
+    }
+
+    const opts = document.createElement('div');
+    opts.className = 'options';
+    opts.id = 'opts-' + q.id;
+
+    q.options.forEach(function(opt, i) {
+      const label = document.createElement('label');
+      label.className = 'option-label';
+      label.id = 'opt-' + q.id + '-' + i;
+      label.addEventListener('click', function() { selectOption(q.id, i); });
+
+      const input = document.createElement('input');
+      input.type = 'radio';
+      input.name = 'q' + q.id;
+      input.value = i;
+
+      const score = document.createElement('span');
+      score.className = 'option-score';
+      score.textContent = i;
+
+      label.appendChild(input);
+      label.appendChild(score);
+      label.appendChild(document.createTextNode(' ' + opt));
+      opts.appendChild(label);
+    });
+
+    div.appendChild(opts);
     (q.id <= 20 ? p1 : p2).appendChild(div);
   });
 }
