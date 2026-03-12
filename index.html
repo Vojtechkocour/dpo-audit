@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Diagnostika připravenosti obce (DPO)</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4f6f9;
+      color: #1a1a2e;
+      line-height: 1.6;
+    }
+
+    header {
+      background: #1a1a2e;
+      color: white;
+      padding: 2rem;
+      text-align: center;
+    }
+    header h1 { font-size: 1.8rem; letter-spacing: 1px; }
+    header p { color: #aaa; margin-top: 0.4rem; font-size: 0.95rem; }
+
+    .container { max-width: 860px; margin: 0 auto; padding: 2rem 1rem; }
+
+    /* INTRO */
+    .intro {
+      background: white;
+      border-radius: 8px;
+      padding: 1.5rem 2rem;
+      margin-bottom: 2rem;
+      border-left: 4px solid #3498db;
+    }
+    .intro p { color: #555; font-size: 0.95rem; }
+
+    /* SECTION */
+    .section-block {
+      background: white;
+      border-radius: 8px;
+      margin-bottom: 2rem;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .section-header {
+      background: #1a1a2e;
+      color: white;
+      padding: 1rem 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .section-header h2 { font-size: 1.1rem; }
+    .section-header span { font-size: 0.85rem; color: #aaa; }
+
+    /* QUESTION */
+    .question {
+      padding: 1.2rem 1.5rem;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .question:last-child { border-bottom: none; }
+    .question-text {
+      font-weight: 600;
+      margin-bottom: 0.8rem;
+      font-size: 0.95rem;
+    }
+    .question-note {
+      font-size: 0.8rem;
+      color: #888;
+      font-style: italic;
+      margin-bottom: 0.8rem;
+    }
+    .options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    .option-label {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.4rem 0.8rem;
+      border: 2px solid #e0e0e0;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 0.82rem;
+      transition: all 0.2s;
+      background: #fafafa;
+    }
+    .option-label:hover { border-color: #3498db; background: #eaf4fd; }
+    .option-label input { display: none; }
+    .option-label.selected {
+      border-color: #3498db;
+      background: #3498db;
+      color: white;
+      font-weight: 600;
+    }
+    .option-score {
+      background: rgba(0,0,0,0.15);
+      border-radius: 10px;
+      padding: 0 5px;
+      font-size: 0.75rem;
+    }
+    .option-label.selected .option-score { background: rgba(255,255,255,0.3); }
+
+    /* SUBMIT */
+    .submit-area {
+      text-align: center;
+      margin: 2rem 0;
+    }
+    .btn-submit {
+      background: #1a1a2e;
+      color: white;
+      border: none;
+      padding: 1rem 3rem;
+      font-size: 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+      letter-spacing: 1px;
+      transition: background 0.2s;
+    }
+    .btn-submit:hover { background: #3498db; }
+    .btn-reset {
+      background: transparent;
+      color: #888;
+      border: 1px solid #ccc;
+      padding: 0.8rem 2rem;
+      font-size: 0.9rem;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-left: 1rem;
+      transition: all 0.2s;
+    }
+    .btn-reset:hover { border-color: #e74c3c; color: #e74c3c; }
+
+    /* RESULTS */
+    #results { display: none; }
+    .results-header {
+      background: white;
+      border-radius: 8px;
+      padding: 2rem;
+      text-align: center;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .score-circle {
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1rem;
+      border: 8px solid;
+    }
+    .score-circle .score-num { font-size: 2.2rem; font-weight: 900; }
+    .score-circle .score-max { font-size: 0.85rem; color: #888; }
+    .score-label { font-size: 1.3rem; font-weight: 700; margin-bottom: 0.3rem; }
+    .score-pct { font-size: 0.95rem; color: #666; }
+
+    .score-green  { border-color: #27ae60; color: #27ae60; }
+    .score-lime   { border-color: #2ecc71; color: #2ecc71; }
+    .score-orange { border-color: #e67e22; color: #e67e22; }
+    .score-red    { border-color: #e74c3c; color: #e74c3c; }
+
+    .section-scores {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .section-score-card {
+      flex: 1;
+      min-width: 200px;
+      background: white;
+      border-radius: 8px;
+      padding: 1.5rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      text-align: center;
+    }
+    .section-score-card h3 { font-size: 0.9rem; color: #666; margin-bottom: 0.5rem; }
+    .section-score-card .big { font-size: 1.8rem; font-weight: 900; }
+    .section-score-card .of { font-size: 0.9rem; color: #aaa; }
+    .progress-bar {
+      background: #eee;
+      border-radius: 10px;
+      height: 8px;
+      margin-top: 0.8rem;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      border-radius: 10px;
+      transition: width 1s;
+    }
+
+    .charts-row {
+      display: flex;
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .chart-card {
+      flex: 1;
+      min-width: 280px;
+      background: white;
+      border-radius: 8px;
+      padding: 1.5rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .chart-card h3 { font-size: 0.95rem; font-weight: 700; margin-bottom: 1rem; color: #444; }
+
+    /* WEAK AREAS */
+    .weak-areas {
+      background: white;
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .weak-areas h3 { font-size: 1rem; font-weight: 700; margin-bottom: 1rem; color: #e74c3c; }
+    .weak-item {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.7rem 0;
+      border-bottom: 1px solid #f5f5f5;
+      font-size: 0.88rem;
+    }
+    .weak-item:last-child { border-bottom: none; }
+    .weak-score {
+      min-width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: white;
+    }
+    .ws-0 { background: #e74c3c; }
+    .ws-1 { background: #e67e22; }
+    .ws-2 { background: #f1c40f; color: #333; }
+
+    .btn-back {
+      background: transparent;
+      color: #3498db;
+      border: 2px solid #3498db;
+      padding: 0.8rem 2rem;
+      font-size: 0.95rem;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-top: 1rem;
+    }
+    .btn-back:hover { background: #3498db; color: white; }
+
+    .unanswered-msg {
+      color: #e74c3c;
+      font-size: 0.9rem;
+      margin-top: 0.8rem;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Diagnostika připravenosti obce (DPO)</h1>
+  <p>Vstupní prověření připravenosti obce · verze 1.0 · 2026</p>
+</header>
+
+<div class="container">
+
+  <!-- FORM -->
+  <div id="form-section">
+    <div class="intro">
+      <p>Vyplňte 25 otázek ve dvou blocích. U každé otázky vyberte hodnotu <strong>0–4</strong>, která nejlépe odpovídá aktuálnímu stavu vaší obce. Po odeslání zobrazíme výsledky s grafem a přehledem slabých míst.</p>
+    </div>
+
+    <form id="audit-form">
+      <!-- PART 1 -->
+      <div class="section-block">
+        <div class="section-header">
+          <h2>Část 1: Krizové řízení</h2>
+          <span>Otázky 1–20 · max. 80 bodů</span>
+        </div>
+        <div id="questions-part1"></div>
+      </div>
+
+      <!-- PART 2 -->
+      <div class="section-block">
+        <div class="section-header">
+          <h2>Část 2: Připravenost JSDH</h2>
+          <span>Otázky 21–25 · max. 20 bodů</span>
+        </div>
+        <div id="questions-part2"></div>
+      </div>
+    </form>
+
+    <div class="submit-area">
+      <button class="btn-submit" onclick="submitAudit()">Vyhodnotit audit</button>
+      <button class="btn-reset" onclick="resetForm()">Resetovat</button>
+      <div class="unanswered-msg" id="unanswered-msg">Prosím vyplňte všechny otázky před odesláním.</div>
+    </div>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="results">
+    <div class="results-header">
+      <div class="score-circle" id="score-circle">
+        <span class="score-num" id="total-score">0</span>
+        <span class="score-max">z 100</span>
+      </div>
+      <div class="score-label" id="score-label">–</div>
+      <div class="score-pct" id="score-pct">–</div>
+    </div>
+
+    <div class="section-scores">
+      <div class="section-score-card">
+        <h3>Krizové řízení</h3>
+        <span class="big" id="score-p1">0</span>
+        <span class="of"> / 80 bodů</span>
+        <div class="progress-bar"><div class="progress-fill" id="bar-p1" style="width:0%; background:#3498db;"></div></div>
+      </div>
+      <div class="section-score-card">
+        <h3>Připravenost JSDH</h3>
+        <span class="big" id="score-p2">0</span>
+        <span class="of"> / 20 bodů</span>
+        <div class="progress-bar"><div class="progress-fill" id="bar-p2" style="width:0%; background:#9b59b6;"></div></div>
+      </div>
+    </div>
+
+    <div class="charts-row">
+      <div class="chart-card">
+        <h3>Skóre podle kategorií</h3>
+        <canvas id="radarChart"></canvas>
+      </div>
+      <div class="chart-card">
+        <h3>Skóre jednotlivých otázek</h3>
+        <canvas id="barChart"></canvas>
+      </div>
+    </div>
+
+    <div class="weak-areas" id="weak-areas-block">
+      <h3>Oblasti vyžadující pozornost</h3>
+      <div id="weak-list"></div>
+    </div>
+
+    <div style="text-align:center; margin-bottom: 2rem;">
+      <button class="btn-back" onclick="goBack()">← Upravit odpovědi</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const questions = [
+  // Part 1
+  { id: 1, text: "Má obec zpracovaný krizový plán?", note: "", options: ["nemá", "zastaralý / formální", "základní dokument", "částečně funkční", "aktuální a použitelný"], cat: "Krizový plán" },
+  { id: 2, text: "Je krizový plán aktualizovaný?", note: "", options: ["nikdy", "více než 5 let", "nepravidelně", "při změnách osob", "pravidelně"], cat: "Krizový plán" },
+  { id: 3, text: "Má obec jmenovaný krizový štáb?", note: "", options: ["ne", "neformální, ústní", "seznam osob", "oficiálně jmenovaný", "jmenovaný + funkční"], cat: "Krizový štáb" },
+  { id: 4, text: "Vědí členové KŠ o svých úkolech?", note: "", options: ["nevědí", "část ví", "většina ví", "všichni ví", "všichni ví a znají úkoly"], cat: "Krizový štáb" },
+  { id: 5, text: "Proběhlo seznámení členů KŠ s jejich úkoly a odpovědností?", note: "", options: ["nikdy", "jen informativně", "před lety", "teoretické školení", "školení + modelová situace"], cat: "Krizový štáb" },
+  { id: 6, text: "Zná starosta první kroky při krizové situaci?", note: "", options: ["ne", "obecně", "orientačně", "ví postup", "má připravený checklist"], cat: "Starosta & nástroje" },
+  { id: 7, text: "Používá starosta Krizport?", note: "", options: ["nikdy", "má přístup", "přihlásil se jednou", "orientuje se", "aktivně využívá"], cat: "Starosta & nástroje" },
+  { id: 8, text: "Bylo ZO informováno o KP?", note: "Existuje zápis ZO o tom, že obec má vypracovaný KP a členové ZO byli s obsahem KP seznámeni", options: ["ne", "okrajově", "ústně", "projednáno na ZO", "znají základní obsah"], cat: "Krizový plán" },
+  { id: 9, text: "Má obec zpracovaný přehled hlavních rizik a ohrožujících subjektů?", note: "Části obce kde se v minulosti rozlil potok nebo jiná mimořádná událost, průmyslová zóna, zemědělské družstvo s chovem zvířat…", options: ["ne", "obecně", "seznam", "konkrétní rizika", "rizika + opatření"], cat: "Krizový plán" },
+  { id: 10, text: "Má obec aktuální kontaktní seznamy?", note: "HZS, ORP, KOPIS, technické služby…", options: ["ne", "neaktuální", "částečné", "aktuální", "aktuální + záložní"], cat: "Kontakty & postupy" },
+  { id: 11, text: "Má obec stanovený postup svolání krizového štábu?", note: "SMS, aplikace „Fireport", jiné", options: ["ne", "jen telefonicky", "orientačně", "jasně určený", "písemný a odzkoušený"], cat: "Kontakty & postupy" },
+  { id: 12, text: "Má obec připravený postup při blackoutu?", note: "Power banky, náhradní zdroje, elektrocentrála", options: ["ne", "obecné povědomí", "ví koho kontaktovat", "má základní řešení", "má konkrétní plán"], cat: "Kontakty & postupy" },
+  { id: 13, text: "Má obec připravený postup evakuace?", note: "", options: ["ne", "pouze teoreticky", "vytipované místo", "určené odpovědnosti", "popsaný postup"], cat: "Kontakty & postupy" },
+  { id: 14, text: "Je jasně určeno, kdo může spustit sirénu?", note: "", options: ["ne", "neformálně", "omezený okruh", "jasně určeno", "určeno + písemná směrnice"], cat: "Kontakty & postupy" },
+  { id: 15, text: "Má obec povědomí o zranitelných osobách?", note: "Invalidé, těžce nemocné osoby…", options: ["ne", "orientačně", "neaktuální", "aktuální", "aktualizovaný + kontakty"], cat: "Přehled zdrojů" },
+  { id: 16, text: "Má obec přehled o technice a vybavení využitelném při krizích?", note: "Traktor, čerpadla, el. centrály…", options: ["ne", "jen orientačně", "částečný seznam", "aktuální seznam", "seznam + odpovědné osoby"], cat: "Přehled zdrojů" },
+  { id: 17, text: "Má obec seznam klíčových místních subjektů využitelných při krizi?", note: "Obchod, restaurace, náhradní ubytování, dopravce, zemědělce…", options: ["ne", "starosta ví z hlavy", "neformální seznam", "písemný seznam", "aktualizovaný seznam"], cat: "Přehled zdrojů" },
+  { id: 18, text: "Má obec určené místo pro řízení krizové situace?", note: "Pracoviště KŠ, zasedačka, náhradní místo, škola, kulturní dům, obecní úřad", options: ["ne", "improvizace", "předpoklad", "určeno", "určeno + technicky připraveno"], cat: "Organizace & kontrola" },
+  { id: 19, text: "Má obec připravené základní formuláře / záznamové archy pro krizovou situaci?", note: "Evidence evakuovaných…", options: ["ne", "improvizace", "jednoduché poznámky", "připravené vzory", "kompletní sada formulářů"], cat: "Organizace & kontrola" },
+  { id: 20, text: "Provádí obec pravidelnou kontrolu připravenosti?", note: "Min. 1× ročně, kontrola kontaktů, složení KŠ, techniky…", options: ["nikdy", "nahodile", "občas", "plánovaně", "systematicky"], cat: "Organizace & kontrola" },
+  // Part 2
+  { id: 21, text: "Má JSDH aktuální seznam členů včetně kvalifikací?", note: "Vytištěný seznam členů a uložen na obci", options: ["ne", "neaktuální", "seznam existuje", "aktualizovaný", "aktualizovaný + přehled odborností"], cat: "JSDH" },
+  { id: 22, text: "Mají členové platné zdravotní prohlídky?", note: "Zapsané v portále HZS, originální tiskopisy uloženy na obci", options: ["většina nemá", "část nemá", "většina má", "téměř všichni", "všichni + evidence"], cat: "JSDH" },
+  { id: 23, text: "Probíhá pravidelná odborná příprava členů?", note: "Seznam školení, evidence, prezenční listina, seznam okruhů školení dle požadavků HZS", options: ["ne", "jen nahodile", "povinné minimum", "pravidelně", "pravidelně + zdokumentováno"], cat: "JSDH" },
+  { id: 24, text: "Probíhají kondiční jízdy strojníků s evidencí?", note: "Seznam strojníků, zápis o kondiční jízdě", options: ["ne", "náhodně", "nepravidelně", "pravidelně", "pravidelně + písemná evidence"], cat: "JSDH" },
+  { id: 25, text: "Je budova zbrojnice provozně zabezpečena?", note: "Nouzové východy označeny, siréna označena, hasicí přístroje, plánek budovy, důležitá tel. čísla, volací znaky", options: ["nevyhovující", "základní minimum", "částečně", "splněno", "plně funkční a kontrolováno"], cat: "JSDH" },
+];
+
+let radarChartInstance = null;
+let barChartInstance = null;
+
+function renderQuestions() {
+  const p1 = document.getElementById('questions-part1');
+  const p2 = document.getElementById('questions-part2');
+  p1.innerHTML = '';
+  p2.innerHTML = '';
+
+  questions.forEach(q => {
+    const div = document.createElement('div');
+    div.className = 'question';
+    div.innerHTML = `
+      <div class="question-text">${q.id}. ${q.text}</div>
+      ${q.note ? `<div class="question-note">${q.note}</div>` : ''}
+      <div class="options" id="opts-${q.id}">
+        ${q.options.map((opt, i) => `
+          <label class="option-label" id="opt-${q.id}-${i}" onclick="selectOption(${q.id}, ${i})">
+            <input type="radio" name="q${q.id}" value="${i}">
+            <span class="option-score">${i}</span> ${opt}
+          </label>
+        `).join('')}
+      </div>
+    `;
+    (q.id <= 20 ? p1 : p2).appendChild(div);
+  });
+}
+
+function selectOption(qId, val) {
+  for (let i = 0; i <= 4; i++) {
+    const el = document.getElementById(`opt-${qId}-${i}`);
+    if (el) el.classList.remove('selected');
+  }
+  const el = document.getElementById(`opt-${qId}-${val}`);
+  if (el) el.classList.add('selected');
+}
+
+function getAnswers() {
+  const answers = {};
+  questions.forEach(q => {
+    const selected = document.querySelector(`input[name="q${q.id}"]:checked`);
+    answers[q.id] = selected ? parseInt(selected.value) : null;
+  });
+  return answers;
+}
+
+function submitAudit() {
+  const answers = getAnswers();
+  const unanswered = questions.filter(q => answers[q.id] === null);
+  const msg = document.getElementById('unanswered-msg');
+
+  if (unanswered.length > 0) {
+    msg.style.display = 'block';
+    msg.textContent = `Prosím vyplňte všechny otázky. Chybí: ${unanswered.map(q => q.id).join(', ')}`;
+    return;
+  }
+  msg.style.display = 'none';
+  showResults(answers);
+}
+
+function showResults(answers) {
+  document.getElementById('form-section').style.display = 'none';
+  document.getElementById('results').style.display = 'block';
+  window.scrollTo(0, 0);
+
+  // Scores
+  let p1 = 0, p2 = 0;
+  questions.forEach(q => {
+    if (q.id <= 20) p1 += answers[q.id];
+    else p2 += answers[q.id];
+  });
+  const total = p1 + p2;
+  const pct = Math.round(total);
+
+  document.getElementById('total-score').textContent = total;
+  document.getElementById('score-p1').textContent = p1;
+  document.getElementById('score-p2').textContent = p2;
+  document.getElementById('bar-p1').style.width = (p1 / 80 * 100) + '%';
+  document.getElementById('bar-p2').style.width = (p2 / 20 * 100) + '%';
+
+  // Label & color
+  const circle = document.getElementById('score-circle');
+  circle.className = 'score-circle';
+  let label, colorClass;
+  if (pct >= 85) { label = "Výborná připravenost"; colorClass = "score-green"; }
+  else if (pct >= 65) { label = "Dobrá připravenost"; colorClass = "score-lime"; }
+  else if (pct >= 40) { label = "Částečná připravenost"; colorClass = "score-orange"; }
+  else { label = "Kritická nepřipravenost"; colorClass = "score-red"; }
+  circle.classList.add(colorClass);
+  document.getElementById('score-label').textContent = label;
+  document.getElementById('score-pct').textContent = `${pct} / 100 bodů (${pct}%)`;
+
+  // Category scores for radar
+  const cats = ["Krizový plán", "Krizový štáb", "Starosta & nástroje", "Kontakty & postupy", "Přehled zdrojů", "Organizace & kontrola", "JSDH"];
+  const catMax = { "Krizový plán": 16, "Krizový štáb": 12, "Starosta & nástroje": 8, "Kontakty & postupy": 20, "Přehled zdrojů": 12, "Organizace & kontrola": 12, "JSDH": 20 };
+  const catScore = {};
+  cats.forEach(c => catScore[c] = 0);
+  questions.forEach(q => { catScore[q.cat] += answers[q.id]; });
+  const catPct = cats.map(c => Math.round(catScore[c] / catMax[c] * 100));
+
+  // Radar chart
+  if (radarChartInstance) radarChartInstance.destroy();
+  const ctx1 = document.getElementById('radarChart').getContext('2d');
+  radarChartInstance = new Chart(ctx1, {
+    type: 'radar',
+    data: {
+      labels: cats.map(c => c.length > 16 ? c.split(' & ') : c),
+      datasets: [{
+        label: 'Připravenost (%)',
+        data: catPct,
+        backgroundColor: 'rgba(52, 152, 219, 0.2)',
+        borderColor: '#3498db',
+        borderWidth: 2,
+        pointBackgroundColor: '#3498db',
+      }]
+    },
+    options: {
+      scales: { r: { min: 0, max: 100, ticks: { stepSize: 25 } } },
+      plugins: { legend: { display: false } }
+    }
+  });
+
+  // Bar chart - all questions
+  if (barChartInstance) barChartInstance.destroy();
+  const ctx2 = document.getElementById('barChart').getContext('2d');
+  const barColors = questions.map(q => {
+    const v = answers[q.id];
+    if (v <= 1) return '#e74c3c';
+    if (v === 2) return '#e67e22';
+    if (v === 3) return '#f1c40f';
+    return '#27ae60';
+  });
+  barChartInstance = new Chart(ctx2, {
+    type: 'bar',
+    data: {
+      labels: questions.map(q => `Q${q.id}`),
+      datasets: [{
+        data: questions.map(q => answers[q.id]),
+        backgroundColor: barColors,
+        borderRadius: 3,
+      }]
+    },
+    options: {
+      scales: {
+        y: { min: 0, max: 4, ticks: { stepSize: 1 } },
+        x: { ticks: { font: { size: 10 } } }
+      },
+      plugins: { legend: { display: false } }
+    }
+  });
+
+  // Weak areas
+  const weakList = document.getElementById('weak-list');
+  weakList.innerHTML = '';
+  const weak = questions.filter(q => answers[q.id] <= 2).sort((a, b) => answers[a.id] - answers[b.id]);
+  if (weak.length === 0) {
+    weakList.innerHTML = '<p style="color:#27ae60; font-size:0.9rem;">Žádné kritické oblasti – skvělá práce!</p>';
+  } else {
+    weak.forEach(q => {
+      const v = answers[q.id];
+      const div = document.createElement('div');
+      div.className = 'weak-item';
+      div.innerHTML = `
+        <div class="weak-score ws-${v}">${v}</div>
+        <div><strong>Otázka ${q.id}:</strong> ${q.text}<br><small style="color:#888">${q.options[v]}</small></div>
+      `;
+      weakList.appendChild(div);
+    });
+  }
+}
+
+function goBack() {
+  document.getElementById('results').style.display = 'none';
+  document.getElementById('form-section').style.display = 'block';
+  window.scrollTo(0, 0);
+}
+
+function resetForm() {
+  if (!confirm('Opravdu chcete resetovat všechny odpovědi?')) return;
+  document.querySelectorAll('.option-label').forEach(el => el.classList.remove('selected'));
+  document.querySelectorAll('input[type=radio]').forEach(el => el.checked = false);
+  document.getElementById('unanswered-msg').style.display = 'none';
+}
+
+renderQuestions();
+</script>
+</body>
+</html>
