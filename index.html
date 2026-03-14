@@ -4,8 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Diagnostika připravenosti obce (DPO)</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/dom-to-image-more/3.3.0/dom-to-image-more.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -884,7 +882,7 @@
 
     <div class="results-actions">
       <button class="btn-back" id="btn-back">&#8592; Nový audit</button>
-      <button class="btn-pdf" id="btn-pdf">Stáhnout PDF</button>
+      <button class="btn-pdf" onclick="window.print()">Exportovat do PDF</button>
     </div>
 
   </div>
@@ -1409,119 +1407,6 @@ document.getElementById('btn-back').addEventListener('click', function() {
   showScreen('screen-intro');
   document.getElementById('resume-banner').style.display = 'none';
   window.scrollTo(0, 0);
-});
-
-// PDF download — captures actual screen appearance via dom-to-image + jsPDF
-document.getElementById('btn-pdf').addEventListener('click', function() {
-  var nazev = document.getElementById('obec-nadpis').value.trim() || 'DPO-audit';
-  var container = document.querySelector('.results-container');
-  var actions = document.querySelector('.results-actions');
-  var topbar = document.querySelector('.results-topbar');
-  var btn = this;
-
-  btn.textContent = 'Generuji…';
-  btn.disabled = true;
-  actions.style.display = 'none';
-  topbar.style.display = 'none';
-  container.style.paddingBottom = '0';
-
-  // Fix width and set white background for capture
-  var origWidth = container.style.width;
-  var origMargin = container.style.margin;
-  var origBodyBg = document.body.style.background;
-  container.style.width = container.offsetWidth + 'px';
-  container.style.margin = '0';
-  document.body.style.background = '#ffffff';
-
-  // Scroll to top so full content is captured
-  window.scrollTo(0, 0);
-
-  setTimeout(function() {
-    domtoimage.toPng(container, {
-      quality: 1,
-      bgcolor: '#ffffff',
-      style: {
-        'transform': 'none',
-        'animation': 'none'
-      }
-    }).then(function(dataUrl) {
-      var img = new Image();
-      img.onload = function() {
-        var imgW = img.width;
-        var imgH = img.height;
-
-        // A4 dimensions in mm
-        var pageW = 210;
-        var pageH = 297;
-        var margin = 8;
-        var contentW = pageW - margin * 2;
-        var contentH = pageH - margin * 2;
-
-        // Scale image to fit page width
-        var ratio = contentW / imgW;
-        var scaledH = imgH * ratio;
-
-        var pdf = new jspdf.jsPDF({
-          orientation: 'portrait',
-          unit: 'mm',
-          format: 'a4'
-        });
-
-        // If content fits on one page
-        if (scaledH <= contentH) {
-          pdf.addImage(dataUrl, 'PNG', margin, margin, contentW, scaledH);
-        } else {
-          // Multi-page: slice the image across pages
-          var pageImgH = contentH / ratio; // height in px per page
-          var canvas = document.createElement('canvas');
-          var ctx = canvas.getContext('2d');
-          canvas.width = imgW;
-          var y = 0;
-          var pageNum = 0;
-
-          while (y < imgH) {
-            var sliceH = Math.min(pageImgH, imgH - y);
-            canvas.height = sliceH;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.drawImage(img, 0, y, imgW, sliceH, 0, 0, imgW, sliceH);
-
-            var pageData = canvas.toDataURL('image/png');
-            var sliceScaledH = sliceH * ratio;
-
-            if (pageNum > 0) pdf.addPage();
-            pdf.addImage(pageData, 'PNG', margin, margin, contentW, sliceScaledH);
-
-            y += sliceH;
-            pageNum++;
-          }
-        }
-
-        pdf.save(nazev + '.pdf');
-
-        // Restore
-        actions.style.display = '';
-        topbar.style.display = '';
-        container.style.paddingBottom = '';
-        container.style.width = origWidth;
-        container.style.margin = origMargin;
-        document.body.style.background = origBodyBg;
-        btn.textContent = 'Stáhnout PDF';
-        btn.disabled = false;
-      };
-      img.src = dataUrl;
-    }).catch(function(err) {
-      console.error('PDF error:', err);
-      actions.style.display = '';
-      topbar.style.display = '';
-      container.style.paddingBottom = '';
-      container.style.width = origWidth;
-      container.style.margin = origMargin;
-      document.body.style.background = origBodyBg;
-      btn.textContent = 'Stáhnout PDF';
-      btn.disabled = false;
-      alert('Nepodařilo se vygenerovat PDF. Zkuste to znovu.');
-    });
-  }, 300);
 });
 
 // Keyboard navigation
