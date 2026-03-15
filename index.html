@@ -1292,17 +1292,26 @@ function buildPDF(jsPDF) {
   doc.circle(circleCx, circleCy, circleR, 'S');
   doc.setLineWidth(0.2);
 
-  // Score number — vertically centered in circle
+  // Score number + "z 100" — precisely centered as a group
+  doc.setFont('Roboto', 'bold');
+  doc.setFontSize(28);
+  var numH = doc.getTextDimensions(String(total)).h;
+  doc.setFont('Roboto', 'normal');
+  doc.setFontSize(10);
+  var subH = doc.getTextDimensions('z 100').h;
+  var gap = 1.5;
+  var groupH = numH + gap + subH;
+  var groupTop = circleCy - groupH / 2;
+
   doc.setFont('Roboto', 'bold');
   doc.setFontSize(28);
   doc.setTextColor(color[0], color[1], color[2]);
-  doc.text(String(total), circleCx, circleCy + 1, { align: 'center', baseline: 'middle' });
+  doc.text(String(total), circleCx, groupTop + numH, { align: 'center' });
 
-  // "z 100" text
   doc.setFontSize(10);
   doc.setFont('Roboto', 'normal');
   doc.setTextColor(120, 120, 120);
-  doc.text('z 100', circleCx, circleCy + 9, { align: 'center' });
+  doc.text('z 100', circleCx, groupTop + numH + gap + subH, { align: 'center' });
 
   // Label below circle
   doc.setFont('Roboto', 'bold');
