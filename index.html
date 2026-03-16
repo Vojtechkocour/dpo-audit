@@ -1173,10 +1173,11 @@ function sendEmail() {
   }
   var total = p1 + p2;
   var label;
-  if (total >= 85) label = 'Výborná připravenost';
-  else if (total >= 65) label = 'Dobrá připravenost';
-  else if (total >= 40) label = 'Částečná připravenost';
-  else label = 'Kritická nepřipravenost';
+  if (total >= 81) label = 'Velmi dobrá připravenost';
+  else if (total >= 61) label = 'Dobrá připravenost';
+  else if (total >= 41) label = 'Základní připravenost';
+  else if (total >= 21) label = 'Nedostatečná připravenost';
+  else label = 'Chybějící připravenost';
 
   var subject = 'DPO Audit — ' + obec + ' — ' + total + '/100';
   var bodyText = 'Dobrý den,\n\nv příloze zasílám výsledky auditu DPO.\n\n'
@@ -1184,7 +1185,7 @@ function sendEmail() {
     + 'Celkové skóre: ' + total + '/100 (' + label + ')\n'
     + 'Krizové řízení: ' + p1 + '/80\n'
     + 'Připravenost JSDH: ' + p2 + '/20\n\n'
-    + 'Vygenerováno aplikací DPO Audit (JD5)\n';
+;
 
   // Generate PDF
   var pdf = generatePDFBlob();
@@ -1236,10 +1237,11 @@ function buildPDF(jsPDF) {
   }
   var total = p1 + p2;
   var label, color;
-  if (total >= 85)      { label = 'Výborná připravenost';    color = [125,194,66]; }
-  else if (total >= 65) { label = 'Dobrá připravenost';      color = [125,194,66]; }
-  else if (total >= 40) { label = 'Částečná připravenost';   color = [230,126,34]; }
-  else                  { label = 'Kritická nepřipravenost'; color = [231,76,60]; }
+  if (total >= 81)      { label = 'Velmi dobrá připravenost'; color = [125,194,66]; }
+  else if (total >= 61) { label = 'Dobrá připravenost';      color = [125,194,66]; }
+  else if (total >= 41) { label = 'Základní připravenost';   color = [230,126,34]; }
+  else if (total >= 21) { label = 'Nedostatečná připravenost'; color = [231,76,60]; }
+  else                  { label = 'Chybějící připravenost';  color = [231,76,60]; }
 
   var catScores = {};
   for (var c = 0; c < cats.length; c++) catScores[cats[c]] = 0;
@@ -1273,7 +1275,7 @@ function buildPDF(jsPDF) {
   doc.setTextColor(120, 120, 120);
   var today = new Date();
   var dateStr = today.getDate() + '. ' + (today.getMonth() + 1) + '. ' + today.getFullYear();
-  doc.text('Datum auditu: ' + dateStr, W - M, y, { align: 'right' });
+  doc.text('Datum diagnostiky: ' + dateStr, W - M, y, { align: 'right' });
   y += 10;
 
   // ── CELKOVÉ SKÓRE (kruh) ──
@@ -1282,7 +1284,7 @@ function buildPDF(jsPDF) {
   var circleCy = y + circleR + 2;
 
   // Light background fill
-  var bgColor = total >= 85 ? [234,250,241] : total >= 65 ? [234,250,241] : total >= 40 ? [254,245,236] : [253,237,236];
+  var bgColor = total >= 81 ? [234,250,241] : total >= 61 ? [234,250,241] : total >= 41 ? [254,245,236] : [253,237,236];
   doc.setFillColor(bgColor[0], bgColor[1], bgColor[2]);
   doc.circle(circleCx, circleCy, circleR, 'F');
 
@@ -1488,9 +1490,8 @@ function buildPDF(jsPDF) {
     doc.setFont('Roboto', 'normal');
     doc.setFontSize(7);
     doc.setTextColor(160, 160, 160);
-    doc.text('DPO Audit – ' + obec + ' – ' + dateStr, M, 290);
+    doc.text('DPO – ' + obec + ' – ' + dateStr, M, 290);
     doc.text('Strana ' + p + ' / ' + pageCount, W - M, 290, { align: 'right' });
-    doc.text('Vygenerováno aplikací DPO Audit (JD5)', W / 2, 290, { align: 'center' });
   }
 
   return doc;
@@ -1538,10 +1539,11 @@ function showResults() {
 
   var circle = document.getElementById('score-circle');
   var label, color, bg;
-  if (total >= 85)      { label = "Výborná připravenost";     color = "#7DC242"; bg = "#eafaf1"; }
-  else if (total >= 65) { label = "Dobrá připravenost";       color = "#7DC242"; bg = "#eafaf1"; }
-  else if (total >= 40) { label = "Částečná připravenost";    color = "#e67e22"; bg = "#fef5ec"; }
-  else                  { label = "Kritická nepřipravenost";  color = "#e74c3c"; bg = "#fdedec"; }
+  if (total >= 81)      { label = "Velmi dobrá připravenost";  color = "#7DC242"; bg = "#eafaf1"; }
+  else if (total >= 61) { label = "Dobrá připravenost";       color = "#7DC242"; bg = "#eafaf1"; }
+  else if (total >= 41) { label = "Základní připravenost";    color = "#e67e22"; bg = "#fef5ec"; }
+  else if (total >= 21) { label = "Nedostatečná připravenost"; color = "#e74c3c"; bg = "#fdedec"; }
+  else                  { label = "Chybějící připravenost";   color = "#e74c3c"; bg = "#fdedec"; }
 
   circle.style.borderColor = color;
   circle.style.color = color;
