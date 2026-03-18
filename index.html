@@ -509,11 +509,12 @@
       justify-content: center;
       margin: 0 auto 1rem;
       border: 8px solid #ccc;
-      transition: border-color 0.4s ease;
+      transition: background 0.4s ease, border-color 0.4s ease, color 0.4s ease;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
     }
     .score-circle .score-num { font-size: 2.2rem; font-weight: 900; }
-    .score-circle .score-max { font-size: 0.85rem; color: #888; }
-    .score-label { font-size: 1.3rem; font-weight: 700; margin-bottom: 0.3rem; }
+    .score-circle .score-max { font-size: 0.85rem; opacity: 0.75; }
+    .score-label { display: inline-block; font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem; padding: 0.35rem 1.1rem; border-radius: 20px; }
     .score-pct { font-size: 0.95rem; color: #666; }
 
     .section-scores {
@@ -608,23 +609,44 @@
     }
     .bar-pct { min-width: 36px; text-align: right; color: #888; font-size: 0.8rem; }
 
-    .q-bars { display: flex; flex-direction: column; gap: 4px; }
-    .q-bar-row { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; }
-    .q-bar-label { min-width: 28px; color: #888; }
-    .q-bar-track {
+    .q-list { display: flex; flex-direction: column; gap: 5px; }
+    .q-list-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0.55rem 0.75rem;
+      background: #f9fafb;
+      border-radius: 8px;
+    }
+    .q-list-num {
+      min-width: 24px;
+      font-weight: 700;
+      color: #9ca3af;
+      font-size: 0.78rem;
+      text-align: right;
+      flex-shrink: 0;
+    }
+    .q-list-text {
       flex: 1;
-      background: #eee;
-      border-radius: 3px;
-      height: 14px;
-      overflow: hidden;
+      font-size: 0.87rem;
+      color: #374151;
+      line-height: 1.35;
     }
-    .q-bar-fill {
-      height: 100%;
-      border-radius: 3px;
-      width: 0%;
-      transition: width 0.7s ease;
+    .q-list-badge {
+      min-width: 44px;
+      padding: 0.22rem 0.55rem;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      text-align: center;
+      white-space: nowrap;
+      flex-shrink: 0;
     }
-    .q-bar-val { min-width: 14px; text-align: right; font-weight: 600; color: #555; }
+    .q-score-0 { background: #ee0000; color: #fff; }
+    .q-score-1 { background: #ffc000; color: #333; }
+    .q-score-2 { background: #ffff00; color: #333; }
+    .q-score-3 { background: #66ff33; color: #333; }
+    .q-score-4 { background: #93cf4f; color: #333; }
 
     .weak-areas {
       background: rgba(255,255,255,0.92);
@@ -742,7 +764,7 @@
         backdrop-filter: none;
         background: white !important;
       }
-      .bar-fill, .progress-fill, .score-circle, .weak-score, .q-bar-fill {
+      .bar-fill, .progress-fill, .score-circle, .weak-score, .q-list-badge {
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
       }
@@ -816,7 +838,7 @@
     </div>
 
     <div class="intro-actions">
-      <button class="btn-start" id="btn-start">Nový audit &#8594;</button>
+      <button class="btn-start" id="btn-start">Nová diagnostika &#8594;</button>
     </div>
   </div>
 </div>
@@ -849,7 +871,7 @@
 <div id="screen-results" class="screen">
   <div class="results-topbar">
     <div class="topbar-logo jd5-logo"><span class="logo-jd">JD</span><span class="logo-5">5</span></div>
-    <h2>Výsledky auditu DPO</h2>
+    <h2>Výsledky diagnostiky</h2>
   </div>
   <div class="results-container">
 
@@ -885,8 +907,8 @@
     </div>
 
     <div class="chart-card">
-      <h3>Skóre jednotlivých otázek</h3>
-      <div class="q-bars" id="q-chart"></div>
+      <h3>Přehled všech otázek</h3>
+      <div class="q-list" id="q-chart"></div>
     </div>
 
     <div class="weak-areas">
@@ -895,7 +917,7 @@
     </div>
 
     <div class="results-actions">
-      <button class="btn-back" id="btn-back">&#8592; Nový audit</button>
+      <button class="btn-back" id="btn-back">&#8592; Nová diagnostika</button>
       <button class="btn-pdf" onclick="exportPDF()">Exportovat do PDF</button>
       <button class="btn-email" onclick="sendEmail()">Odeslat emailem</button>
     </div>
@@ -1160,7 +1182,7 @@ function generatePDFBlob() {
   var jsPDF = window.jspdf.jsPDF;
   var doc = buildPDF(jsPDF);
   var obec = document.getElementById('obec-nadpis').value || 'Neuvedeno';
-  var fileName = 'DPO-Audit-' + obec.replace(/[^a-zA-Z0-9áčďéěíňóřšťúůýžÁČĎÉĚÍŇÓŘŠŤÚŮÝŽ ]/g, '').replace(/ /g, '-') + '.pdf';
+  var fileName = 'Diagnostika - ' + obec.replace(/[/\\:*?"<>|]/g, '') + '.pdf';
   return { blob: doc.output('blob'), fileName: fileName };
 }
 
@@ -1236,12 +1258,12 @@ function buildPDF(jsPDF) {
     if (questions[i].id <= 20) p1 += v; else p2 += v;
   }
   var total = p1 + p2;
-  var label, color;
-  if (total >= 81)      { label = 'Velmi dobrá připravenost'; color = [125,194,66]; }
-  else if (total >= 61) { label = 'Dobrá připravenost';      color = [125,194,66]; }
-  else if (total >= 41) { label = 'Základní připravenost';   color = [230,126,34]; }
-  else if (total >= 21) { label = 'Nedostatečná připravenost'; color = [231,76,60]; }
-  else                  { label = 'Chybějící připravenost';  color = [231,76,60]; }
+  var label, color, pdfTextColor, pdfLabelColor;
+  if (total >= 81)      { label = 'Velmi dobrá připravenost'; color = [147,207,79];  pdfTextColor = [26,58,10];    pdfLabelColor = [90,138,40]; }
+  else if (total >= 61) { label = 'Dobrá připravenost';      color = [102,255,51];  pdfTextColor = [10,46,0];     pdfLabelColor = [51,170,0]; }
+  else if (total >= 41) { label = 'Základní připravenost';   color = [255,255,0];   pdfTextColor = [51,51,0];     pdfLabelColor = [136,136,0]; }
+  else if (total >= 21) { label = 'Nedostatečná připravenost'; color = [255,192,0]; pdfTextColor = [51,34,0];     pdfLabelColor = [153,102,0]; }
+  else                  { label = 'Chybějící připravenost';  color = [238,0,0];     pdfTextColor = [255,255,255]; pdfLabelColor = [204,0,0]; }
 
   var catScores = {};
   for (var c = 0; c < cats.length; c++) catScores[cats[c]] = 0;
@@ -1283,15 +1305,11 @@ function buildPDF(jsPDF) {
   var circleCx = M + CW / 2;
   var circleCy = y + circleR + 2;
 
-  // Light background fill
-  var bgColor = total >= 81 ? [234,250,241] : total >= 61 ? [234,250,241] : total >= 41 ? [254,245,236] : [253,237,236];
-  doc.setFillColor(bgColor[0], bgColor[1], bgColor[2]);
-  doc.circle(circleCx, circleCy, circleR, 'F');
-
-  // Colored border
+  // Filled circle with exact color
+  doc.setFillColor(color[0], color[1], color[2]);
   doc.setDrawColor(color[0], color[1], color[2]);
   doc.setLineWidth(1.8);
-  doc.circle(circleCx, circleCy, circleR, 'S');
+  doc.circle(circleCx, circleCy, circleR, 'FD');
   doc.setLineWidth(0.2);
 
   // Score number + "z 100" — precisely centered as a group
@@ -1307,27 +1325,35 @@ function buildPDF(jsPDF) {
 
   doc.setFont('Roboto', 'bold');
   doc.setFontSize(28);
-  doc.setTextColor(color[0], color[1], color[2]);
+  doc.setTextColor(pdfTextColor[0], pdfTextColor[1], pdfTextColor[2]);
   doc.text(String(total), circleCx, groupTop + numH, { align: 'center' });
 
   doc.setFontSize(10);
   doc.setFont('Roboto', 'normal');
-  doc.setTextColor(120, 120, 120);
+  doc.setTextColor(pdfTextColor[0], pdfTextColor[1], pdfTextColor[2]);
   doc.text('z 100', circleCx, groupTop + numH + gap + subH, { align: 'center' });
 
   // Label below circle
   doc.setFont('Roboto', 'bold');
   doc.setFontSize(12);
-  doc.setTextColor(color[0], color[1], color[2]);
-  doc.text(label, circleCx, circleCy + circleR + 7, { align: 'center' });
+  // Label badge below circle
+  var labelText = label;
+  doc.setFont('Roboto', 'bold');
+  doc.setFontSize(10);
+  var labelW = doc.getTextWidth(labelText) + 10;
+  var labelX = circleCx - labelW / 2;
+  var labelY = circleCy + circleR + 4;
+  doc.setFillColor(color[0], color[1], color[2]);
+  doc.roundedRect(labelX, labelY, labelW, 7, 2, 2, 'F');
+  doc.setTextColor(pdfTextColor[0], pdfTextColor[1], pdfTextColor[2]);
+  doc.text(labelText, circleCx, labelY + 5, { align: 'center' });
 
-  y = circleCy + circleR + 14;
+  y = circleCy + circleR + 16;
 
   // ── ČÁST 1 + 2 ──
   var halfW = (CW - 4) / 2;
   function drawPartBox(x, title, score, max) {
-    var pct = Math.round(score / max * 100);
-    var col = score / max >= 0.65 ? [125,194,66] : score / max >= 0.4 ? [230,126,34] : [231,76,60];
+    var col = [160, 160, 160];
     doc.setFillColor(245, 247, 250);
     doc.roundedRect(x, y, halfW, 20, 2, 2, 'F');
     doc.setFont('Roboto', 'normal');
@@ -1359,7 +1385,7 @@ function buildPDF(jsPDF) {
     var sc = catScores[cat];
     var mx = catMax[cat];
     var pct = Math.round(sc / mx * 100);
-    var col = sc / mx >= 0.65 ? [125,194,66] : sc / mx >= 0.4 ? [230,126,34] : [231,76,60];
+    var col = [160, 160, 160];
 
     doc.setFont('Roboto', 'normal');
     doc.setFontSize(8);
@@ -1398,7 +1424,7 @@ function buildPDF(jsPDF) {
   for (var i = 0; i < questions.length; i++) {
     var q = questions[i];
     var v = selected[q.id];
-    var col = v <= 1 ? [231,76,60] : v === 2 ? [230,126,34] : v === 3 ? [241,196,15] : [125,194,66];
+    var col = v === 0 ? [238,0,0] : v === 1 ? [255,192,0] : v === 2 ? [255,255,0] : v === 3 ? [102,255,51] : [147,207,79];
 
     if (y > 272) {
       doc.addPage();
@@ -1421,7 +1447,7 @@ function buildPDF(jsPDF) {
     doc.roundedRect(tBadgeCx - tBadgeW / 2, y - 2.5, tBadgeW, 5, 1, 1, 'F');
     doc.setFont('Roboto', 'bold');
     doc.setFontSize(7);
-    doc.setTextColor(255, 255, 255);
+    doc.setTextColor(v === 0 ? 255 : 60, v === 0 ? 255 : 60, v === 0 ? 255 : 60);
     doc.text(v + '/4', tBadgeCx, y + 1, { align: 'center' });
 
     y += tRowH;
@@ -1501,7 +1527,7 @@ function exportPDF() {
   var jsPDF = window.jspdf.jsPDF;
   var doc = buildPDF(jsPDF);
   var obec = document.getElementById('obec-nadpis').value || 'Neuvedeno';
-  var fileName = 'DPO-Audit-' + obec.replace(/[^a-zA-Z0-9áčďéěíňóřšťúůýžÁČĎÉĚÍŇÓŘŠŤÚŮÝŽ ]/g, '').replace(/ /g, '-') + '.pdf';
+  var fileName = 'Diagnostika - ' + obec.replace(/[/\\:*?"<>|]/g, '') + '.pdf';
   doc.save(fileName);
 }
 
@@ -1523,33 +1549,34 @@ function showResults() {
 
   document.getElementById('score-p1').textContent = p1;
   document.getElementById('score-p2').textContent = p2;
-  var colP1 = scoreColor(p1, 80);
-  var colP2 = scoreColor(p2, 20);
+  var grayCol = '#9ca3af';
 
   setTimeout(function() {
     document.getElementById('bar-p1').style.width = Math.round(p1 / 80 * 100) + '%';
     document.getElementById('bar-p2').style.width = Math.round(p2 / 20 * 100) + '%';
   }, 50);
-  document.getElementById('bar-p1').style.background = colP1;
-  document.getElementById('bar-p2').style.background = colP2;
-  document.getElementById('score-p1').style.color = colP1;
-  document.getElementById('score-p2').style.color = colP2;
-  document.querySelectorAll('.section-score-card')[0].style.borderTopColor = colP1;
-  document.querySelectorAll('.section-score-card')[1].style.borderTopColor = colP2;
+  document.getElementById('bar-p1').style.background = grayCol;
+  document.getElementById('bar-p2').style.background = grayCol;
+  document.getElementById('score-p1').style.color = grayCol;
+  document.getElementById('score-p2').style.color = grayCol;
+  document.querySelectorAll('.section-score-card')[0].style.borderTopColor = grayCol;
+  document.querySelectorAll('.section-score-card')[1].style.borderTopColor = grayCol;
 
   var circle = document.getElementById('score-circle');
-  var label, color, bg;
-  if (total >= 81)      { label = "Velmi dobrá připravenost";  color = "#7DC242"; bg = "#eafaf1"; }
-  else if (total >= 61) { label = "Dobrá připravenost";       color = "#7DC242"; bg = "#eafaf1"; }
-  else if (total >= 41) { label = "Základní připravenost";    color = "#e67e22"; bg = "#fef5ec"; }
-  else if (total >= 21) { label = "Nedostatečná připravenost"; color = "#e74c3c"; bg = "#fdedec"; }
-  else                  { label = "Chybějící připravenost";   color = "#e74c3c"; bg = "#fdedec"; }
+  var label, color, textColor, labelColor;
+  if (total >= 81)      { label = "Velmi dobrá připravenost";  color = "#93cf4f"; textColor = "#1a3a0a"; labelColor = "#5a8a28"; }
+  else if (total >= 61) { label = "Dobrá připravenost";       color = "#66ff33"; textColor = "#0a2e00"; labelColor = "#33aa00"; }
+  else if (total >= 41) { label = "Základní připravenost";    color = "#ffff00"; textColor = "#333300"; labelColor = "#888800"; }
+  else if (total >= 21) { label = "Nedostatečná připravenost"; color = "#ffc000"; textColor = "#332200"; labelColor = "#996600"; }
+  else                  { label = "Chybějící připravenost";   color = "#ee0000"; textColor = "#ffffff"; labelColor = "#cc0000"; }
 
+  circle.style.background = color;
   circle.style.borderColor = color;
-  circle.style.color = color;
-  circle.style.background = bg;
-  document.getElementById('score-label').textContent = label;
-  document.getElementById('score-label').style.color = color;
+  circle.style.color = textColor;
+  var labelEl = document.getElementById('score-label');
+  labelEl.textContent = label;
+  labelEl.style.background = color;
+  labelEl.style.color = textColor;
   document.getElementById('score-pct').textContent = total + ' / 100 bodů (' + total + '%)';
   document.querySelector('.results-header').style.borderTop = '6px solid ' + color;
 
@@ -1566,7 +1593,6 @@ function showResults() {
     var score = catScores[cat];
     var max = catMax[cat];
     var pct = Math.round(score / max * 100);
-    var col = scoreColor(score, max);
 
     var row = document.createElement('div');
     row.className = 'bar-row';
@@ -1581,7 +1607,7 @@ function showResults() {
     var fill = document.createElement('div');
     fill.className = 'bar-fill';
     fill.style.width = '0%';
-    fill.style.background = col;
+    fill.style.background = '#9ca3af';
     if (pct > 15) fill.textContent = score + '/' + max;
     catFills.push({ el: fill, pct: pct });
     track.appendChild(fill);
@@ -1590,53 +1616,44 @@ function showResults() {
     pctLabel.className = 'bar-pct';
     pctLabel.textContent = pct + '%';
 
-    row.style.background = col + '18';
+    row.style.background = '#f3f4f6';
     row.appendChild(lbl);
     row.appendChild(track);
     row.appendChild(pctLabel);
     catDiv.appendChild(row);
   }
 
-  // Question bars
+  setTimeout(function() {
+    for (var i = 0; i < catFills.length; i++) catFills[i].el.style.width = catFills[i].pct + '%';
+  }, 50);
+
+  // Question list
   var qDiv = document.getElementById('q-chart');
   qDiv.innerHTML = '';
-  var qFills = [];
   for (var i = 0; i < questions.length; i++) {
     var q = questions[i];
     var v = selected[q.id];
-    var col = v <= 1 ? '#e74c3c' : v === 2 ? '#e67e22' : v === 3 ? '#f1c40f' : '#7DC242';
 
     var row = document.createElement('div');
-    row.className = 'q-bar-row';
+    row.className = 'q-list-row';
 
-    var lbl = document.createElement('div');
-    lbl.className = 'q-bar-label';
-    lbl.textContent = 'Q' + q.id;
+    var num = document.createElement('div');
+    num.className = 'q-list-num';
+    num.textContent = q.id;
 
-    var track = document.createElement('div');
-    track.className = 'q-bar-track';
+    var text = document.createElement('div');
+    text.className = 'q-list-text';
+    text.textContent = q.text;
 
-    var fill = document.createElement('div');
-    fill.className = 'q-bar-fill';
-    fill.style.width = '0%';
-    fill.style.background = col;
-    qFills.push({ el: fill, pct: Math.round(v / 4 * 100) });
-    track.appendChild(fill);
+    var badge = document.createElement('div');
+    badge.className = 'q-list-badge q-score-' + v;
+    badge.textContent = v + '/4';
 
-    var val = document.createElement('div');
-    val.className = 'q-bar-val';
-    val.textContent = v;
-
-    row.appendChild(lbl);
-    row.appendChild(track);
-    row.appendChild(val);
+    row.appendChild(num);
+    row.appendChild(text);
+    row.appendChild(badge);
     qDiv.appendChild(row);
   }
-
-  setTimeout(function() {
-    for (var i = 0; i < catFills.length; i++) catFills[i].el.style.width = catFills[i].pct + '%';
-    for (var i = 0; i < qFills.length; i++) qFills[i].el.style.width = qFills[i].pct + '%';
-  }, 50);
 
   // Weak areas
   var weakDiv = document.getElementById('weak-list');
