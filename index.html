@@ -784,7 +784,7 @@
     <h1>Diagnostika připravenosti obce</h1>
     <p class="subtitle">Vstupní prověření připravenosti obce &middot; verze 2.1 &middot; 2026</p>
     <p class="intro-description">
-      DPO audit pomáhá obci objektivně zjistit stav krizové připravenosti. Projděte 25 otázek rozdělených do 7 kategorií a získejte přehled, co funguje a co je třeba zlepšit.
+      Diagnostika pomáhá obci objektivně zjistit stav krizové připravenosti. Projděte 25 otázek rozdělených do 7 kategorií a získejte přehled, co funguje a co je třeba zlepšit.
     </p>
 
     <div class="cat-grid">
@@ -1275,12 +1275,8 @@ function buildPDF(jsPDF) {
 
   doc.setFont('Roboto', 'bold');
   doc.setTextColor(26, 26, 46);
-  doc.setFontSize(18);
-  doc.text('Diagnostika připravenosti obce', M + logoW + 4, y + 5);
-  doc.setFontSize(10);
-  doc.setFont('Roboto', 'normal');
-  doc.setTextColor(120, 120, 120);
-  doc.text('(DPO)', M + logoW + 4, y + 11);
+  doc.setFontSize(16);
+  doc.text('Diagnostika připravenosti obce (DPO)', M + logoW + 4, y + 8);
 
   y += 20;
   doc.setDrawColor(220, 220, 220);
@@ -1292,12 +1288,6 @@ function buildPDF(jsPDF) {
   doc.setFontSize(13);
   doc.setTextColor(26, 26, 46);
   doc.text('Obec: ' + obec, M, y);
-  doc.setFont('Roboto', 'normal');
-  doc.setFontSize(9);
-  doc.setTextColor(120, 120, 120);
-  var today = new Date();
-  var dateStr = today.getDate() + '. ' + (today.getMonth() + 1) + '. ' + today.getFullYear();
-  doc.text('Datum diagnostiky: ' + dateStr, W - M, y, { align: 'right' });
   y += 10;
 
   // ── CELKOVÉ SKÓRE (kruh) ──
@@ -1369,46 +1359,6 @@ function buildPDF(jsPDF) {
   drawPartBox(M + halfW + 4, 'Část 2 – Připravenost JSDH', p2, 20);
   y += 26;
 
-  // ── KATEGORIE ──
-  doc.setFont('Roboto', 'bold');
-  doc.setFontSize(12);
-  doc.setTextColor(26, 26, 46);
-  doc.text('Skóre podle kategorií', M, y);
-  y += 6;
-
-  var barH = 7, barGap = 1.5;
-  var labelW = 52, valW = 22;
-  var trackW = CW - labelW - valW;
-
-  for (var c = 0; c < cats.length; c++) {
-    var cat = cats[c];
-    var sc = catScores[cat];
-    var mx = catMax[cat];
-    var pct = Math.round(sc / mx * 100);
-    var col = [160, 160, 160];
-
-    doc.setFont('Roboto', 'normal');
-    doc.setFontSize(8);
-    doc.setTextColor(60, 60, 60);
-    doc.text(cat, M, y + barH - 2);
-
-    // Track background
-    doc.setFillColor(235, 235, 240);
-    doc.roundedRect(M + labelW, y, trackW, barH, 1.5, 1.5, 'F');
-    // Fill
-    var fillW = Math.max(trackW * pct / 100, 1);
-    doc.setFillColor(col[0], col[1], col[2]);
-    doc.roundedRect(M + labelW, y, fillW, barH, 1.5, 1.5, 'F');
-
-    doc.setFont('Roboto', 'bold');
-    doc.setFontSize(8);
-    doc.setTextColor(60, 60, 60);
-    doc.text(sc + '/' + mx + ' (' + pct + '%)', M + labelW + trackW + 2, y + barH - 2);
-
-    y += barH + barGap;
-  }
-  y += 4;
-
   // ── OTÁZKY ──
   doc.setFont('Roboto', 'bold');
   doc.setFontSize(12);
@@ -1454,8 +1404,9 @@ function buildPDF(jsPDF) {
   }
   y += 4;
 
-  // ── SLABÁ MÍSTA ──
-  if (y > 255) { doc.addPage(); y = 18; }
+  // ── SLABÁ MÍSTA (vždy nová stránka) ──
+  doc.addPage();
+  y = 18;
 
   var weak = [];
   for (var i = 0; i < questions.length; i++) {
@@ -1480,14 +1431,15 @@ function buildPDF(jsPDF) {
       if (y > 272) { doc.addPage(); y = 18; }
       var q = weak[i];
       var v = selected[q.id];
-      var col = v === 0 ? [231,76,60] : v === 1 ? [230,126,34] : [241,196,15];
+      var col = v === 0 ? [238,0,0] : v === 1 ? [255,192,0] : [255,255,0];
+      var colTxt = v === 0 ? [255,255,255] : [51,51,0];
 
       // Score circle
       doc.setFillColor(col[0], col[1], col[2]);
       doc.circle(M + 3, y + 1, 3, 'F');
       doc.setFont('Roboto', 'bold');
       doc.setFontSize(7);
-      doc.setTextColor(255, 255, 255);
+      doc.setTextColor(colTxt[0], colTxt[1], colTxt[2]);
       doc.text(String(v), M + 3, y + 2.2, { align: 'center' });
 
       // Text
@@ -1507,6 +1459,46 @@ function buildPDF(jsPDF) {
     }
   }
 
+  // ── KATEGORIE (vždy nová stránka, poslední) ──
+  doc.addPage();
+  y = 18;
+
+  doc.setFont('Roboto', 'bold');
+  doc.setFontSize(12);
+  doc.setTextColor(26, 26, 46);
+  doc.text('Skóre podle kategorií', M, y);
+  y += 6;
+
+  var barH = 7, barGap = 1.5;
+  var labelW = 52, valW = 22;
+  var trackW = CW - labelW - valW;
+
+  for (var c = 0; c < cats.length; c++) {
+    var cat = cats[c];
+    var sc = catScores[cat];
+    var mx = catMax[cat];
+    var pct = Math.round(sc / mx * 100);
+    var col = [160, 160, 160];
+
+    doc.setFont('Roboto', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(60, 60, 60);
+    doc.text(cat, M, y + barH - 2);
+
+    doc.setFillColor(235, 235, 240);
+    doc.roundedRect(M + labelW, y, trackW, barH, 1.5, 1.5, 'F');
+    var fillW = Math.max(trackW * pct / 100, 1);
+    doc.setFillColor(col[0], col[1], col[2]);
+    doc.roundedRect(M + labelW, y, fillW, barH, 1.5, 1.5, 'F');
+
+    doc.setFont('Roboto', 'bold');
+    doc.setFontSize(8);
+    doc.setTextColor(60, 60, 60);
+    doc.text(sc + '/' + mx + ' (' + pct + '%)', M + labelW + trackW + 2, y + barH - 2);
+
+    y += barH + barGap;
+  }
+
   // ── PATIČKA ──
   var pageCount = doc.getNumberOfPages();
   for (var p = 1; p <= pageCount; p++) {
@@ -1516,7 +1508,7 @@ function buildPDF(jsPDF) {
     doc.setFont('Roboto', 'normal');
     doc.setFontSize(7);
     doc.setTextColor(160, 160, 160);
-    doc.text('DPO – ' + obec + ' – ' + dateStr, M, 290);
+    doc.text('DPO – ' + obec, M, 290);
     doc.text('Strana ' + p + ' / ' + pageCount, W - M, 290, { align: 'right' });
   }
 
