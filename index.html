@@ -902,11 +902,6 @@
     </div>
 
     <div class="chart-card">
-      <h3>Skóre podle kategorií</h3>
-      <div id="cat-chart"></div>
-    </div>
-
-    <div class="chart-card">
       <h3>Přehled všech otázek</h3>
       <div class="q-list" id="q-chart"></div>
     </div>
@@ -914,6 +909,11 @@
     <div class="weak-areas">
       <h3>Oblasti vyžadující pozornost</h3>
       <div id="weak-list"></div>
+    </div>
+
+    <div class="chart-card">
+      <h3>Skóre podle kategorií</h3>
+      <div id="cat-chart"></div>
     </div>
 
     <div class="results-actions">
@@ -936,8 +936,8 @@ var questions = [
   { id:1,  text:"Má obec zpracovaný krizový plán?",                                  note:"",                                                                                                        opts:["nemá","zastaralý / formální","základní dokument","částečně funkční","aktuální a použitelný"],       cat:"Krizový plán" },
   { id:2,  text:"Je krizový plán aktualizovaný?",                                    note:"",                                                                                                        opts:["nikdy","více než 5 let","nepravidelně","při změnách osob","pravidelně"],                            cat:"Krizový plán" },
   { id:3,  text:"Má obec jmenovaný krizový štáb?",                                   note:"",                                                                                                        opts:["ne","neformální, ústní","seznam osob","oficiálně jmenovaný","jmenovaný + funkční"],                  cat:"Krizový štáb" },
-  { id:4,  text:"Vědí členové KS o svých úkolech?",                                  note:"",                                                                                                        opts:["nevědí","část ví","většina ví","všichni ví","všichni ví a znají úkoly"],                             cat:"Krizový štáb" },
-  { id:5,  text:"Proběhlo seznámení členů KS s jejich úkoly a odpovědností?",        note:"",                                                                                                        opts:["nikdy","jen informativně","před lety","teoretické školení","školení + modelová situace"],             cat:"Krizový štáb" },
+  { id:4,  text:"Vědí členové krizového štábu o svých úkolech?",                                  note:"",                                                                                                        opts:["nevědí","část ví","většina ví","všichni ví","všichni ví a znají úkoly"],                             cat:"Krizový štáb" },
+  { id:5,  text:"Proběhlo seznámení členů krizového štábu s jejich úkoly a odpovědností?",        note:"",                                                                                                        opts:["nikdy","jen informativně","před lety","teoretické školení","školení + modelová situace"],             cat:"Krizový štáb" },
   { id:6,  text:"Zná starosta první kroky při krizové situaci?",                     note:"",                                                                                                        opts:["ne","obecně","orientačně","ví postup","má připravený checklist"],                                    cat:"Starosta a nástroje" },
   { id:7,  text:"Používá starosta Krizport?",                                        note:"",                                                                                                        opts:["nikdy","má přístup","přihlásil se jednou","orientuje se","aktivně využívá"],                         cat:"Starosta a nástroje" },
   { id:8,  text:"Bylo ZO informováno o KP?",                                         note:"Existuje zápis ZO o tom, že obec má vypracovaný KP a členové ZO byli s obsahem KP seznámeni",            opts:["ne","okrajově","ústně","projednáno na ZO","znají základní obsah"],                                    cat:"Krizový plán" },
@@ -1662,7 +1662,8 @@ function showResults() {
     for (var i = 0; i < weak.length; i++) {
       var q = weak[i];
       var v = selected[q.id];
-      var col = v === 0 ? '#e74c3c' : v === 1 ? '#e67e22' : '#f1c40f';
+      var col = v === 0 ? '#ee0000' : v === 1 ? '#ffc000' : '#ffff00';
+      var colTxt = v === 0 ? '#fff' : '#333';
 
       var item = document.createElement('div');
       item.className = 'weak-item';
@@ -1670,7 +1671,7 @@ function showResults() {
       var badge = document.createElement('div');
       badge.className = 'weak-score';
       badge.style.background = col;
-      if (v === 2) badge.style.color = '#333';
+      badge.style.color = colTxt;
       badge.textContent = v;
 
       var info = document.createElement('div');
