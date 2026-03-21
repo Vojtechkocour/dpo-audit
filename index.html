@@ -1271,12 +1271,15 @@ function buildPDF(jsPDF) {
 
   // ── HEADER ──
   var logoW = 18, logoH = 13;
-  doc.addImage(JD5_LOGO, 'PNG', M, y, logoW, logoH);
-
+  var headerTitle = 'Protokol diagnostiky připravenosti obce';
   doc.setFont('Roboto', 'bold');
+  doc.setFontSize(14);
+  var titleW = doc.getTextWidth(headerTitle);
+  var totalBlockW = logoW + 4 + titleW;
+  var blockX = (W - totalBlockW) / 2;
+  doc.addImage(JD5_LOGO, 'PNG', blockX, y, logoW, logoH);
   doc.setTextColor(26, 26, 46);
-  doc.setFontSize(16);
-  doc.text('Diagnostika připravenosti obce (DPO)', M + logoW + 4, y + 8);
+  doc.text(headerTitle, blockX + logoW + 4, y + 9);
 
   y += 20;
   doc.setDrawColor(220, 220, 220);
