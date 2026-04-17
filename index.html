@@ -796,7 +796,7 @@
       <div class="cat-item">
         <span class="cat-icon">&#128101;</span>
         <span class="cat-name">Krizový štáb</span>
-        <span class="cat-count">2 otázky</span>
+        <span class="cat-count">3 otázky</span>
       </div>
       <div class="cat-item">
         <span class="cat-icon">&#128295;</span>
@@ -806,7 +806,7 @@
       <div class="cat-item">
         <span class="cat-icon">&#128222;</span>
         <span class="cat-name">Kontakty a postupy</span>
-        <span class="cat-count">5 otázek</span>
+        <span class="cat-count">4 otázky</span>
       </div>
       <div class="cat-item">
         <span class="cat-icon">&#128193;</span>
@@ -940,7 +940,7 @@ var questions = [
   { id:5,  text:"Má obec zpracovaný přehled hlavních rizik a ohrožujících subjektů?",   note:"Části obce kde se rozlil potok, průmyslová zóna, zemědělské družstvo s chovem zvířat",                  opts:["ne","obecně","seznam","konkrétní rizika","rizika + opatření"],                                        cat:"Krizový plán" },
   { id:6,  text:"Má obec připravené základní formuláře / záznamové archy pro krizovou situaci?", note:"Evidence evakuovaných",                                                                          opts:["ne","improvizace","jednoduché poznámky","připravené vzory","kompletní sada formulářů"],               cat:"Organizace a kontrola" },
   { id:7,  text:"Má obec jmenovaný krizový štáb (KŠ)?",                                 note:"",                                                                                                        opts:["ne","neformální, ústní","seznam osob","oficiálně jmenovaný","jmenovaný + funkční"],                  cat:"Krizový štáb" },
-  { id:8,  text:"Má obec stanovený postup svolání KŠ?",                                 note:"SMS, aplikace Fireport, jiné",                                                                            opts:["ne","jen telefonicky","orientačně","jasně určený","písemný a odzkoušený"],                            cat:"Kontakty a postupy" },
+  { id:8,  text:"Má obec stanovený postup svolání KŠ?",                                 note:"SMS, aplikace Fireport, jiné",                                                                            opts:["ne","jen telefonicky","orientačně","jasně určený","písemný a odzkoušený"],                            cat:"Krizový štáb" },
   { id:9,  text:"Vědí členové KŠ o svých úkolech?",                                     note:"",                                                                                                        opts:["nevědí","část ví","většina ví","všichni ví","všichni ví a znají úkoly"],                             cat:"Krizový štáb" },
   { id:10, text:"Má obec určené místo pro řízení krizové situace?",                     note:"Pracoviště KŠ, zasedačka, škola, kulturní dům, obecní úřad",                                            opts:["ne","improvizace","předpoklad","určeno","určeno + technicky připraveno"],                              cat:"Organizace a kontrola" },
   { id:11, text:"Zná starosta první kroky při krizové situaci?",                        note:"",                                                                                                        opts:["ne","obecně","orientačně","ví postup","má připravený checklist"],                                    cat:"Starosta a nástroje" },
@@ -960,7 +960,7 @@ var questions = [
   { id:25, text:"Je budova zbrojnice provozně zabezpečena?",                         note:"Nouzové východy označeny, siréna označena, hasicí přístroje, plánek budovy, důležitá tel. čísla",        opts:["nevyhovující","základní minimum","částečně","splněno","plně funkční a kontrolováno"],                  cat:"JSDH" }
 ];
 
-var catMax = { "Krizový plán":16, "Krizový štáb":8, "Starosta a nástroje":8, "Kontakty a postupy":20, "Přehled zdrojů":16, "Organizace a kontrola":12, "JSDH":20 };
+var catMax = { "Krizový plán":16, "Krizový štáb":12, "Starosta a nástroje":8, "Kontakty a postupy":16, "Přehled zdrojů":16, "Organizace a kontrola":12, "JSDH":20 };
 var cats = ["Krizový plán","Krizový štáb","Starosta a nástroje","Kontakty a postupy","Přehled zdrojů","Organizace a kontrola","JSDH"];
 var selected = {};
 var currentIdx = 0;
