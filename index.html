@@ -512,8 +512,9 @@
       transition: background 0.4s ease, border-color 0.4s ease, color 0.4s ease;
       box-shadow: 0 4px 20px rgba(0,0,0,0.15);
     }
+    .score-num-wrap { display: flex; align-items: baseline; }
     .score-circle .score-num { font-size: 2.2rem; font-weight: 900; }
-    .score-circle .score-max { font-size: 0.85rem; opacity: 0.75; }
+    .score-pct-sign { font-size: 1.3rem; font-weight: 700; margin-left: 2px; }
     .score-label { display: inline-block; font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem; padding: 0.35rem 1.1rem; border-radius: 20px; }
     .score-pct { font-size: 0.95rem; color: #666; }
 
@@ -881,24 +882,11 @@
 
     <div class="results-header">
       <div class="score-circle" id="score-circle">
-        <span class="score-num" id="total-score">0</span>
-        <span class="score-max">z 100</span>
+        <div class="score-num-wrap">
+          <span class="score-num" id="total-score">0</span><span class="score-pct-sign">%</span>
+        </div>
       </div>
       <div class="score-label" id="score-label"></div>
-      <div class="score-pct" id="score-pct"></div>
-    </div>
-
-    <div class="section-scores">
-      <div class="section-score-card">
-        <h3>Krizové řízení</h3>
-        <span class="big" id="score-p1">0</span><span class="of"> / 80 bodů</span>
-        <div class="progress-bar"><div class="progress-fill" id="bar-p1"></div></div>
-      </div>
-      <div class="section-score-card">
-        <h3>Připravenost JSDH</h3>
-        <span class="big" id="score-p2">0</span><span class="of"> / 20 bodů</span>
-        <div class="progress-bar"><div class="progress-fill" id="bar-p2"></div></div>
-      </div>
     </div>
 
     <div class="chart-card">
@@ -1305,26 +1293,12 @@ function buildPDF(jsPDF) {
   doc.circle(circleCx, circleCy, circleR, 'FD');
   doc.setLineWidth(0.2);
 
-  // Score number + "z 100" — precisely centered as a group
+  // Score number + "%" centered in circle
   doc.setFont('Roboto', 'bold');
   doc.setFontSize(28);
+  doc.setTextColor(pdfTextColor[0], pdfTextColor[1], pdfTextColor[2]);
   var numH = doc.getTextDimensions(String(total)).h;
-  doc.setFont('Roboto', 'normal');
-  doc.setFontSize(10);
-  var subH = doc.getTextDimensions('z 100').h;
-  var gap = 1.5;
-  var groupH = numH + gap + subH;
-  var groupTop = circleCy - groupH / 2;
-
-  doc.setFont('Roboto', 'bold');
-  doc.setFontSize(28);
-  doc.setTextColor(pdfTextColor[0], pdfTextColor[1], pdfTextColor[2]);
-  doc.text(String(total), circleCx, groupTop + numH, { align: 'center' });
-
-  doc.setFontSize(10);
-  doc.setFont('Roboto', 'normal');
-  doc.setTextColor(pdfTextColor[0], pdfTextColor[1], pdfTextColor[2]);
-  doc.text('z 100', circleCx, groupTop + numH + gap + subH, { align: 'center' });
+  doc.text(String(total) + '%', circleCx, circleCy + numH / 2, { align: 'center' });
 
   // Label below circle
   doc.setFont('Roboto', 'bold');
@@ -1342,25 +1316,6 @@ function buildPDF(jsPDF) {
   doc.text(labelText, circleCx, labelY + 5, { align: 'center' });
 
   y = circleCy + circleR + 16;
-
-  // ── ČÁST 1 + 2 ──
-  var halfW = (CW - 4) / 2;
-  function drawPartBox(x, title, score, max) {
-    var col = [160, 160, 160];
-    doc.setFillColor(245, 247, 250);
-    doc.roundedRect(x, y, halfW, 20, 2, 2, 'F');
-    doc.setFont('Roboto', 'normal');
-    doc.setFontSize(9);
-    doc.setTextColor(100, 100, 100);
-    doc.text(title, x + halfW / 2, y + 6, { align: 'center' });
-    doc.setFont('Roboto', 'bold');
-    doc.setFontSize(16);
-    doc.setTextColor(col[0], col[1], col[2]);
-    doc.text(score + ' / ' + max, x + halfW / 2, y + 15, { align: 'center' });
-  }
-  drawPartBox(M, 'Část 1 – Krizové řízení', p1, 80);
-  drawPartBox(M + halfW + 4, 'Část 2 – Připravenost JSDH', p2, 20);
-  y += 26;
 
   // ── OTÁZKY ──
   doc.setFont('Roboto', 'bold');
@@ -1542,20 +1497,6 @@ function showResults() {
   scoreNumEl.textContent = '0';
   countUp(scoreNumEl, total, 1000);
 
-  document.getElementById('score-p1').textContent = p1;
-  document.getElementById('score-p2').textContent = p2;
-  var grayCol = '#9ca3af';
-
-  setTimeout(function() {
-    document.getElementById('bar-p1').style.width = Math.round(p1 / 80 * 100) + '%';
-    document.getElementById('bar-p2').style.width = Math.round(p2 / 20 * 100) + '%';
-  }, 50);
-  document.getElementById('bar-p1').style.background = grayCol;
-  document.getElementById('bar-p2').style.background = grayCol;
-  document.getElementById('score-p1').style.color = grayCol;
-  document.getElementById('score-p2').style.color = grayCol;
-  document.querySelectorAll('.section-score-card')[0].style.borderTopColor = grayCol;
-  document.querySelectorAll('.section-score-card')[1].style.borderTopColor = grayCol;
 
   var circle = document.getElementById('score-circle');
   var label, color, textColor, labelColor;
@@ -1572,7 +1513,6 @@ function showResults() {
   labelEl.textContent = label;
   labelEl.style.background = color;
   labelEl.style.color = textColor;
-  document.getElementById('score-pct').textContent = total + ' / 100 bodů (' + total + '%)';
   document.querySelector('.results-header').style.borderTop = '6px solid ' + color;
 
   // Category chart
