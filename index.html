@@ -515,7 +515,7 @@
     .score-num-wrap { display: flex; align-items: baseline; }
     .score-circle .score-num { font-size: 3rem; font-weight: 900; }
     .score-pct-sign { font-size: 3rem; font-weight: 900; margin-left: 8px; }
-    .score-label { display: inline-block; font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem; padding: 0.35rem 1.1rem; border-radius: 20px; }
+    .score-label { display: inline-block; font-size: 1.2rem; font-weight: 700; margin-bottom: 0.5rem; padding: 0.35rem 1.1rem; border-radius: 20px; }
     .score-pct { font-size: 0.95rem; color: #666; }
 
     .section-scores {
@@ -576,7 +576,7 @@
       transform: translateY(-3px);
       box-shadow: 0 12px 32px rgba(43,95,217,0.14);
     }
-    .chart-card h3 { font-size: 0.95rem; font-weight: 700; margin-bottom: 1.2rem; color: #444; }
+    .chart-card h3 { font-size: 1.2rem; font-weight: 700; margin-bottom: 1.2rem; color: #444; }
 
     .bar-row {
       display: flex;
@@ -629,7 +629,7 @@
     }
     .q-list-text {
       flex: 1;
-      font-size: 0.87rem;
+      font-size: 1.1rem;
       color: #374151;
       line-height: 1.35;
     }
@@ -660,14 +660,14 @@
       page-break-inside: avoid;
       animation: fadeUp 0.5s ease both;
     }
-    .weak-areas h3 { font-size: 1rem; font-weight: 700; margin-bottom: 1rem; color: #e74c3c; }
+    .weak-areas h3 { font-size: 1.2rem; font-weight: 700; margin-bottom: 1rem; color: #e74c3c; }
     .weak-item {
       display: flex;
       align-items: flex-start;
       gap: 1rem;
       padding: 0.7rem 0;
       border-bottom: 1px solid #f5f5f5;
-      font-size: 0.88rem;
+      font-size: 1.1rem;
     }
     .weak-item:last-child { border-bottom: none; }
     .weak-score {
@@ -1298,7 +1298,7 @@ function buildPDF(jsPDF) {
   doc.setFontSize(28);
   doc.setTextColor(pdfTextColor[0], pdfTextColor[1], pdfTextColor[2]);
   var numH = doc.getTextDimensions(String(total)).h;
-  doc.text(String(total) + '%', circleCx, circleCy + numH / 2, { align: 'center' });
+  doc.text(String(total) + ' %', circleCx, circleCy + numH / 2, { align: 'center' });
 
   // Label below circle
   doc.setFont('Roboto', 'bold');
@@ -1306,16 +1306,16 @@ function buildPDF(jsPDF) {
   // Label badge below circle
   var labelText = label;
   doc.setFont('Roboto', 'bold');
-  doc.setFontSize(10);
+  doc.setFontSize(12);
   var labelW = doc.getTextWidth(labelText) + 10;
   var labelX = circleCx - labelW / 2;
   var labelY = circleCy + circleR + 4;
   doc.setFillColor(color[0], color[1], color[2]);
-  doc.roundedRect(labelX, labelY, labelW, 7, 2, 2, 'F');
+  doc.roundedRect(labelX, labelY, labelW, 9, 2, 2, 'F');
   doc.setTextColor(pdfTextColor[0], pdfTextColor[1], pdfTextColor[2]);
-  doc.text(labelText, circleCx, labelY + 5, { align: 'center' });
+  doc.text(labelText, circleCx, labelY + 6.5, { align: 'center' });
 
-  y = circleCy + circleR + 16;
+  y = circleCy + circleR + 20;
 
   // ── OTÁZKY ──
   doc.setFont('Roboto', 'bold');
@@ -1324,8 +1324,8 @@ function buildPDF(jsPDF) {
   doc.text('Přehled všech otázek', M, y);
   y += 5;
 
-  var tRowH = 7;
-  var tBadgeW = 11;
+  var tRowH = 9;
+  var tBadgeW = 13;
   var tBadgeCx = M + CW - tBadgeW / 2 - 1;
   y += 2;
 
@@ -1345,16 +1345,16 @@ function buildPDF(jsPDF) {
     }
 
     doc.setFont('Roboto', 'normal');
-    doc.setFontSize(7.5);
+    doc.setFontSize(9.5);
     doc.setTextColor(60, 60, 60);
     doc.text(q.id + '.', M, y + 1);
     doc.text(q.text, M + 8, y + 1);
 
     // Score badge
     doc.setFillColor(col[0], col[1], col[2]);
-    doc.roundedRect(tBadgeCx - tBadgeW / 2, y - 2.5, tBadgeW, 5, 1, 1, 'F');
+    doc.roundedRect(tBadgeCx - tBadgeW / 2, y - 3, tBadgeW, 6, 1, 1, 'F');
     doc.setFont('Roboto', 'bold');
-    doc.setFontSize(7);
+    doc.setFontSize(8);
     doc.setTextColor(v === 0 ? 255 : 60, v === 0 ? 255 : 60, v === 0 ? 255 : 60);
     doc.text(v + '/4', tBadgeCx, y + 1, { align: 'center' });
 
@@ -1402,18 +1402,15 @@ function buildPDF(jsPDF) {
 
       // Text
       doc.setFont('Roboto', 'bold');
-      doc.setFontSize(8);
+      doc.setFontSize(10);
       doc.setTextColor(60, 60, 60);
-      doc.text('Otázka ' + q.id + ': ', M + 9, y + 1.5);
-      var labelWidth = doc.getTextWidth('Otázka ' + q.id + ': ');
-      doc.setFont('Roboto', 'normal');
-      doc.text(q.text, M + 9 + labelWidth, y + 1.5);
+      doc.text('Otázka ' + q.id + ': ' + q.text, M + 9, y + 1.5);
 
-      doc.setFontSize(6.5);
+      doc.setFontSize(10);
       doc.setTextColor(140, 140, 140);
-      doc.text('Aktuální stav: ' + q.opts[v], M + 9, y + 5.5);
+      doc.text('Aktuální stav: ' + q.opts[v], M + 9, y + 7);
 
-      y += 10;
+      y += 13;
     }
   }
 
@@ -1621,10 +1618,12 @@ function showResults() {
       var strong = document.createElement('strong');
       strong.textContent = 'Otázka ' + q.id + ': ';
       info.appendChild(strong);
-      info.appendChild(document.createTextNode(q.text));
+      var qText = document.createElement('strong');
+      qText.textContent = q.text;
+      info.appendChild(qText);
       var small = document.createElement('div');
       small.style.color = '#888';
-      small.style.fontSize = '0.82rem';
+      small.style.fontSize = '1.1rem';
       small.textContent = 'Aktuální stav: ' + q.opts[v];
       info.appendChild(small);
 
